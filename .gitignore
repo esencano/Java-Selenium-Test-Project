@@ -1,0 +1,26 @@
+# Maven build files
+target/
+bin/
+
+# Eclipse files
+.classpath
+.project
+.settings/
+
+# IntelliJ IDEA files
+*.iml
+*.iws
+.idea/
+
+# Selenium files
+/drivers/
+
+# Java class files
+*.class
+
+# Log files
+*.log
+
+# Test outputs
+outputs/
+test-output/

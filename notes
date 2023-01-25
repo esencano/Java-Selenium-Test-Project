@@ -1,0 +1,3 @@
+- Locators package can be improved and locators can be more dynamic but classes under pages package must be modified after locators modified
+- Base page can be modified and finding children elements can be found in better way
+- Test cases with data providers must be modified

@@ -1,0 +1,173 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: selenium-hub-deployment
+  labels:
+    app: selenium-hub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: selenium-hub
+  template:
+    metadata:
+      labels:
+        app: selenium-hub
+    spec:
+      containers:
+      - name: selenium-hub
+        image: selenium/hub:4.7.2
+        ports:
+        - containerPort: 4444
+        - containerPort: 4443
+        - containerPort: 4442
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 4444
+          initialDelaySeconds: 45
+          timeoutSeconds: 15
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 4444
+          initialDelaySeconds: 45
+          timeoutSeconds: 5
+          periodSeconds: 45
+        resources:
+          limits:
+            cpu: 500m
+            memory: 600Mi
+          requests:
+            cpu: 300m
+            memory: 400Mi
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%    
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: selenium-hub-service
+spec:
+  selector:
+    app: selenium-hub
+  ports:
+  - name: selenium-hub-external
+    port: 4444
+    targetPort: 4444
+  - name: selenium-hub-bus-publish
+    port: 4443
+    targetPort: 4443
+  - name: selenium-hub-bus-subscribe
+    port: 4442
+    targetPort: 4442
+  type: ClusterIP
+  
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chrome-driver-deployment
+  labels:
+    app: chrome-driver
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: chrome-driver
+  template:
+    metadata:
+      labels:
+        app: chrome-driver
+    spec:
+      containers:
+      - name: chrome-driver
+        image: selenium/node-chrome:108.0
+        ports:
+        - containerPort: 5900
+        - containerPort: 5555
+        env:
+        - name: SE_EVENT_BUS_HOST
+          value: "selenium-hub-service"
+        - name: SE_EVENT_BUS_PUBLISH_PORT
+          value: "4442"
+        - name: SE_EVENT_BUS_SUBSCRIBE_PORT
+          value: "4443"
+        - name: SE_NODE_MAX_SESSIONS
+          value: "2"
+        - name: SE_NODE_OVERRIDE_MAX_SESSIONS
+          value: "true"
+        - name: SE_NODE_SESSION_TIMEOUT
+          value: "30"
+        - name: SE_SESSION_REQUEST_TIMEOUT
+          value: "30"
+        - name: "SE_SESSION_RETRY_INTERVAL"
+          value: "2"
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 5555
+          initialDelaySeconds: 30
+          timeoutSeconds: 15
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 5555
+          initialDelaySeconds: 30
+          timeoutSeconds: 15
+          periodSeconds: 30 
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1.5Gi
+          requests:
+            cpu: 800m
+            memory: 1Gi
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: chrome-driver-service
+spec:
+  selector:
+    app: chrome-driver
+  ports:
+  - name: chrome-driver-port
+    port: 5555
+    targetPort: 5555
+  type: ClusterIP
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: selenium-hub-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: selenium.ercansencanoglu.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: selenium-hub-service
+            port: 
+               number: 4444

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">  
+<suite name="all" parallel="classes" thread-count="4">
+	<listeners>
+		<listener class-name="listeners.TestListeners"></listener>
+	</listeners>
+	<test name="Smoke Group Test">
+		<parameter name="browser" value="${BrowserName}" />
+		<groups>
+			<run>
+				<include name="smoke"></include>
+			</run>
+		</groups>
+		<packages>
+			<package name="tests"></package>
+		</packages>
+	</test>
+
+
+
+</suite>
+
+<!--mvn clean test  -DBrowserName=opera -DGroupName=regression -Dsurefire.suiteXmlFiles=group.xml-->
+

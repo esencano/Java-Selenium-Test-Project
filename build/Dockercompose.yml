@@ -1,0 +1,76 @@
+version: "3"
+services:
+  chrome:
+    image: selenium/node-chrome:latest
+    shm_size: 2gb
+    restart: always
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=4
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+      - SE_NODE_SESSION_TIMEOUT=10
+      - SE_SESSION_RETRY_INTERVAL=2
+      - SE_SESSION_REQUEST_TIMEOUT=30
+    ports:
+      - 9001-9002:5900
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:4444/wd/hub/status" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 1g
+        reservations:
+          memory: 256m
+  firefox:
+    image: selenium/node-firefox:latest
+    shm_size: 2gb
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=4
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+      - SE_NODE_SESSION_TIMEOUT=10
+      - SE_SESSION_RETRY_INTERVAL=2
+      - SE_SESSION_REQUEST_TIMEOUT=30
+    ports:
+      - 9011-9012:5900
+    deploy:
+      replicas: 2
+  edge:
+    image: selenium/node-edge:latest
+    shm_size: 2gb
+    depends_on:
+      - selenium-hub
+    environment:
+      - SE_EVENT_BUS_HOST=selenium-hub
+      - SE_EVENT_BUS_PUBLISH_PORT=4442
+      - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_NODE_MAX_SESSIONS=4
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+      - SE_NODE_SESSION_TIMEOUT=10
+      - SE_SESSION_RETRY_INTERVAL=2
+      - SE_SESSION_REQUEST_TIMEOUT=30
+    ports:
+      - 9021-9022:5900
+    deploy:
+      replicas: 2
+
+  selenium-hub:
+    image: selenium/hub:latest
+    container_name: selenium-hub
+    expose:
+      - 4442
+      - 4443
+    ports:
+      - "4444:4444"
