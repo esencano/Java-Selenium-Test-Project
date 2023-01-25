@@ -20,5 +20,5 @@
 
 </suite>
 
-<!--mvn clean test  -DBrowserName=opera -DGroupName=regression -Dsurefire.suiteXmlFiles=group.xml-->
+<!--mvn clean test  -DBrowserName=${BrowserName} -Dsurefire.suiteXmlFiles=smoke.xml-->
 

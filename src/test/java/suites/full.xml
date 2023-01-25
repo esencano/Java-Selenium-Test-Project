@@ -15,4 +15,4 @@
 
 </suite>
 
-<!--mvn clean test  -DBrowserName=opera -Dsurefire.suiteXmlFiles=full.xml-->
+<!--mvn clean test  -DBrowserName=${BrowserName} -Dsurefire.suiteXmlFiles=full.xml-->

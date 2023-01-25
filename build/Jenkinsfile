@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+    parameters {
+       choice(name: 'SuiteName', choices: ['smoke', 'regression', 'full'], description:  'Choose test type')
+       choice(name: 'BrowserName', choices: ['remote-chrome','remote-edge', 'remote-firefox'], description:  'Choose a browser')
+       string(name: 'REMOTE_HUB_URL', defaultValue: 'http://selenium.ercansencanoglu.com:31466', description:  'Remote selenium hub URL')
+       string(name: 'APPLICATION_FE_URL', defaultValue: "http://85.90.244.177:3000", description:  'Application frontend URL')
+       string(name: 'APPLICATION_BE_URL', defaultValue: "http://85.90.244.177:3001", description:  'Application backend URL')
+    }
+
+    tools {
+        maven 'mvn'
+    }
+
+    stages {
+        stage('Clone and Run Tests') {
+            steps {
+                cleanWs()
+                git url:'https://github.com/esencano/Java-Selenium-Test-Project', branch:'main'
+                sh "mvn clean test -DBrowserName=${BrowserName} -Dsurefire.suiteXmlFiles=src/test/java/suites/${SuiteName}.xml"
+            }
+        }
+    }
+    post {
+        always {
+               allure includeProperties: false, jdk: '', results: [[path: 'test-output/allure-results']] // allure
+               junit testResults: 'test-output/junitreports/*.xml' //junit
+               step([$class: 'Publisher', reportFilenamePattern: 'test-output/testng-results.xml']) //testng
+        }
+    }
+}
